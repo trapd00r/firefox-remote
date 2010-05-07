@@ -17,7 +17,7 @@ my $m = WWW::Mechanize::Firefox->new(
   agent_alias => 'Linux Mozilla',
 );
 
-my ($option,$option2) = @ARGV;
+
 
 {
   no strict;
@@ -36,6 +36,11 @@ my ($option,$option2) = @ARGV;
     
 #    showclick => sub {extrhash($m->clickables)},
   };
+  if(!@ARGV) {
+    print "OPTIONS:\n";
+    print "  $_\n" for sort(keys(%$options));
+  }
+  my ($option,$option2) = @ARGV;
   defined $options->{$option} && $options->{$option}->();
 }
 
