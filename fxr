@@ -18,12 +18,11 @@ my $m = WWW::Mechanize::Firefox->new(
 );
 
 
-
 {
   no strict;
   my $options = {
     load      => sub {$u = shift; $m->get($u);},
-    refresh   => sub {$m->reload;},
+    refresh   => sub {$m->reload([BYPASS_CACHE]);},
     back      => sub {$m->back;},
     forward   => sub {$m->forward;},
     uri       => sub {print $m->uri,"\n";},
@@ -33,6 +32,7 @@ my $m = WWW::Mechanize::Firefox->new(
     click     => sub {$m->click;},
     pic       => sub {pic()},
     dumpimg   => sub {$w->get($m->uri) && dumpimg()},
+    local     => sub {$m->get_local($option2);},
     
 #    showclick => sub {extrhash($m->clickables)},
   };
@@ -57,12 +57,17 @@ sub dumpimg {
 }
 
 sub pic {
+  my $url = $m->uri;
   my $img = $m->content_as_png;
   my $fname = $m->title.'.png';
+  $fname =~ s/:/-/g;
+  $fname =~ s/\s+/_/g;
+  $fname =~ s#/|\\|\||'|"##; # no /|\'"? :
   open(my $fh, '>', $fname) or die "Cant save to $fname: $!";
   binmode($fh);
   print $fh $img;
   close $fh;
+  print "$url saved to $fname\n";
 }
 
 sub fmt {
