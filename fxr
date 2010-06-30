@@ -59,7 +59,7 @@ sub dumpimg {
 sub pic {
   my $url = $m->uri;
   my $img = $m->content_as_png;
-  my $fname = $m->title.'.png';
+  my $fname = $m->title.'-'.time().'.png';
   $fname =~ s/:/-/g;
   $fname =~ s/\s+/_/g;
   $fname =~ s#/|\\|\||'|"##; # no /|\'"? :
