@@ -1,0 +1,66 @@
+=pod
+
+=head1 NAME
+
+firefox-remote - control firefox remotely using mozrepl
+
+=head1 SYNOPSIS
+
+  fxr [OPTIONS]
+
+=head1 DESCRIPTION
+
+B<fxr> uses the mozrepl extension for controlling firefox remotely.
+
+=head1 OPTIONS
+
+  get       get URI
+
+  back      go back in history
+  forward   go forward in history
+  refresh   refresh
+
+  uri       print the current URI
+  info      print page info
+  links     dump all links
+  ilinks    dump all image links
+  shot      take a screenshot of the current page
+
+=head1 PREREQUISITIES
+
+=head2 mozrepl
+
+First you need to install the mozrepl extension in your browser. Links and howto
+available here: L<https://github.com/bard/mozrepl/wiki/>
+
+Do not forget to activate mozrepl from the B<Tools> menu in firefox!
+
+=head2 WWW::Mechanize, WWW::Mechanize::Firefox
+
+The L<WWW::Mechanize> and L<WWW::Mechanize::Firefox> modules needs to
+be installed:
+
+  # cpan WWW::Mechanize WWW::Mechanize::Firefox
+
+=head1 AUTHOR
+
+  Magnus Woldrich
+  CPAN ID: WOLDRICH
+  magnus@trapd00r.se
+  http://japh.se
+
+=head1 CONTRIBUTORS
+
+None required yet.
+
+=head1 COPYRIGHT
+
+Copyright 2011 the B<firefox-remote> L</AUTHOR> and L</CONTRIBUTORS> as listed
+above.
+
+=head1 LICENSE
+
+This program is free software; you may redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut

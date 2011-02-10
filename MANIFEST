@@ -1,0 +1,4 @@
+bin/fxr
+Makefile.PL
+MANIFEST			This list of files
+README.pod
