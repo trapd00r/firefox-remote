@@ -1,11 +1,19 @@
 #!/usr/bin/perl
-#firefox-remote
+my $APP      = 'firefox-remote';
+our $VERSION = '0.500';
 
 use strict;
 use encoding 'utf-8';
-use Data::Dumper;
 use WWW::Mechanize;
 use WWW::Mechanize::Firefox;
+use Pod::Usage;
+
+my $command = shift;
+if( ($command eq '-h') or ($command eq 'help') or (!defined($command))) {
+  pod2usage(verbose => 1);
+  exit;
+}
+
 
 my $w = WWW::Mechanize->new(
   agent_alias => 'Windows Mozilla',
@@ -18,71 +26,117 @@ my $m = WWW::Mechanize::Firefox->new(
 );
 
 
-{
-  no strict;
-  my $options = {
-    load      => sub {$u = shift; $m->get($u);},
-    refresh   => sub {$m->reload([BYPASS_CACHE]);},
-    back      => sub {$m->back;},
-    forward   => sub {$m->forward;},
-    uri       => sub {print $m->uri,"\n";},
-    save      => sub {$f = shift // $m->uri.'.html';$m->save_content($f);},
-    info      => sub {fmt($m->uri, $m->title,$m->content_type, onoff($m->is_html));},
-    links     => sub {extrurl();},
-    click     => sub {$m->click;},
-    pic       => sub {pic()},
-    dumpimg   => sub {$w->get($m->uri) && dumpimg()},
-    local     => sub {$m->get_local($option2);},
-    
-#    showclick => sub {extrhash($m->clickables)},
-  };
-  if(!@ARGV) {
-    print "OPTIONS:\n";
-    print "  $_\n" for sort(keys(%$options));
-  }
-  my ($option,$option2) = @ARGV;
-  defined $options->{$option} && $options->{$option}->();
+my %options = (
+  get     => sub { $m->get( shift ); },
+  refresh => sub { $m->reload( ['BYPASS_CACHE'] ); },
+  back    => sub { $m->back; },
+  forward => sub { $m->forward; },
+  uri     => sub { print $m->uri, "\n"; },
+  save    => sub { my $f = shift // $m->uri . '.html'; $m->save_content($f); },
+  info    => sub { print "$_\n" for($m->uri, $m->title, $m->content_type); },
+  links   => sub { print $_->url_abs, "\n" for $m->find_all_links },
+  ilinks  => \&image_links,
+  shot    => \&shot,
+
+);
+
+exists($options{$command}) and $options{$command}->();
+
+
+sub image_links {
+  local $\ = "\n";
+  $w->get( $m->base ) or die('Cant GET ' . $m->base);
+  print $_->url_abs for $w->find_all_images;
+
+  return;
 }
 
-sub dumpimg {
-  #foreach my $img($w->links) {
-  #  if($img->url_abs =~ /.+\.png|jpg|jpeg|gif/) {
-  #    print $img->url_abs, "\n";
-  #  }
-  #  else {
-  #    print "foo: ", $img->url_abs, "\n";
-  #  }
-  #}
-  print $_->url_abs, "\n" for ($w->find_all_images);
-}
-
-sub pic {
+sub shot {
   my $url = $m->uri;
   my $img = $m->content_as_png;
-  my $fname = $m->title.'-'.time().'.png';
-  $fname =~ s/:/-/g;
-  $fname =~ s/\s+/_/g;
-  $fname =~ s#/|\\|\||'|"##; # no /|\'"? :
-  open(my $fh, '>', $fname) or die "Cant save to $fname: $!";
+  my $file_name = $m->title . '-' . int(rand(999));
+
+  $file_name =~ s{([;:<>/\\\s\*\|`&\$!#\(\)\[\]\{\}:'"])}{_}gm;
+  $file_name =~ s{[_]+}{_};
+  $file_name =~ s{[åä]}{a}g;
+  $file_name =~ s{[ö]}{o}g;
+  $file_name .= '.png';
+
+  open(my $fh, '>', $file_name) or die("Cant save to $file_name: $!");
   binmode($fh);
   print $fh $img;
-  close $fh;
-  print "$url saved to $fname\n";
+  close($fh);
+
+  print "$url => $file_name\n";
+
+  return;
 }
 
-sub fmt {
-  my @text = @_;
-  print "$_\n" for @text;
-}
+__END__
 
-sub extrurl {
-  my @links = $m->find_all_links;
-  print $_->url_abs,"\n" for @links
-}
+=pod
 
-sub onoff {
-  my $i = shift;
-  $i = 'yes' if $i > 0;
-  $i = 'no'  if $i == 1;
-  return $i;
-}
+=head1 NAME
+
+firefox-remote - control firefox remotely using mozrepl
+
+=head1 SYNOPSIS
+
+  fxr [OPTIONS]
+
+=head1 DESCRIPTION
+
+B<fxr> uses the mozrepl extension for controlling firefox remotely.
+
+=head1 OPTIONS
+
+  get       get URI
+
+  back      go back in history
+  forward   go forward in history
+  refresh   refresh
+
+  uri       print the current URI
+  info      print page info
+  links     dump all links
+  ilinks    dump all image links
+  shot      take a screenshot of the current page
+
+=head1 PREREQUISITIES
+
+=head2 mozrepl
+
+First you need to install the mozrepl extension in your browser. Links and howto
+available here: L<https://github.com/bard/mozrepl/wiki/>
+
+Do not forget to activate mozrepl from the B<Tools> menu in firefox!
+
+=head2 WWW::Mechanize, WWW::Mechanize::Firefox
+
+The L<WWW::Mechanize> and L<WWW::Mechanize::Firefox> modules needs to
+be installed:
+
+  # cpan WWW::Mechanize WWW::Mechanize::Firefox
+
+=head1 AUTHOR
+
+  Magnus Woldrich
+  CPAN ID: WOLDRICH
+  magnus@trapd00r.se
+  http://japh.se
+
+=head1 CONTRIBUTORS
+
+None required yet.
+
+=head1 COPYRIGHT
+
+Copyright 2011 the B<firefox-remote> L</AUTHOR> and L</CONTRIBUTORS> as listed
+above.
+
+=head1 LICENSE
+
+This program is free software; you may redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
