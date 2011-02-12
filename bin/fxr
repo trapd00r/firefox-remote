@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 my $APP      = 'firefox-remote';
-our $VERSION = '0.500';
+our $VERSION = '0.501';
 
 use strict;
 use encoding 'utf-8';
@@ -23,6 +23,7 @@ my $m = WWW::Mechanize::Firefox->new(
   launch      => 'firefox',
   tab         => 'current',
   agent_alias => 'Linux Mozilla',
+#  bufsize     => 10240,
 );
 
 
